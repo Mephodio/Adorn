@@ -1,5 +1,6 @@
 package juuxel.adorn.menu
 
+import juuxel.adorn.util.getBlockEntity
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.inventory.Inventory
@@ -8,6 +9,11 @@ import net.minecraft.menu.Menu
 import net.minecraft.menu.MenuContext
 import net.minecraft.menu.MenuType
 import net.minecraft.menu.Slot
+import net.minecraft.sound.SoundCategory
+import net.minecraft.sound.SoundEvent
+import net.minecraft.sound.SoundEvents
+import net.minecraft.state.property.Properties
+import net.minecraft.util.math.Direction
 
 abstract class SimpleMenu(
     type: MenuType<*>,
@@ -42,6 +48,8 @@ abstract class SimpleMenu(
         for (x in 0..8) {
             addSlot(Slot(playerInventory, x, 8 + x * slot, 142))
         }
+
+        playSound(SoundEvents.BLOCK_BARREL_OPEN)
     }
 
     override fun canUse(player: PlayerEntity) =
@@ -72,5 +80,26 @@ abstract class SimpleMenu(
         }
 
         return result
+    }
+
+    override fun close(player: PlayerEntity) {
+        super.close(player)
+        playSound(SoundEvents.BLOCK_BARREL_CLOSE)
+    }
+
+    private fun playSound(soundEvent: SoundEvent?) {
+        val blockEntity = context.getBlockEntity();
+        if (blockEntity != null) {
+            val world = blockEntity.world;
+            if (world != null) {
+                val vec3i = (world.getBlockState(blockEntity.pos).get(Properties.HORIZONTAL_FACING) as Direction).vector
+                val d: Double = blockEntity.pos.x.toDouble() + 0.5 + vec3i.x.toDouble() / 2.0
+                val e: Double = blockEntity.pos.y.toDouble() + 0.5 + vec3i.y.toDouble() / 2.0
+                val f: Double = blockEntity.pos.z.toDouble() + 0.5 + vec3i.z.toDouble() / 2.0
+                val randomComponent = blockEntity.world?.random?.nextFloat();
+                if (randomComponent != null)
+                    blockEntity.world?.playSound(null as PlayerEntity?, d, e, f, soundEvent, SoundCategory.BLOCKS, 0.5f, randomComponent * 0.1f + 0.9f)
+            }
+        }
     }
 }
